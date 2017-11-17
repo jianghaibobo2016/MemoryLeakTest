@@ -1,0 +1,22 @@
+##############################################################################
+#Copyright (c) 2017 Dsppa
+#Author : JHB	Version : V1.0	Date : 11/02/2017
+##############################################################################
+#!/bin/sh
+
+
+list=process_list
+pn=Server
+pn=init
+pn=init
+
+
+
+
+
+# process_path=(
+# /bin/processA
+# /bin/processB
+# )
+
+ 

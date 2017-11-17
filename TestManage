@@ -1,0 +1,39 @@
+##############################################################################
+#Copyright (c) 2017 Dsppa
+#Author : JHB	Version : V1.0	Date : 11/02/2017
+##############################################################################
+#!/bin/sh
+
+# list_path=/home/jhb/nfs/MemoryLeakTest
+
+
+
+cd /home/jhb/nfs/MemoryLeakTest
+
+if [ $# != 2 ];then 
+    echo "USAGE : $0 -{a/c} PROCESSNAME" 
+    exit 1; 
+fi
+
+if [ $1 == "-a" ];then 
+    #If process has existed.
+    if grep -w "$2" < ProcessList > /dev/null ;then
+        echo "Process $2 has existed, no need to add."
+        exit 0;
+    fi
+    
+    `sed -i /process_list/a\ "pn=$2" ProcessList`
+    if grep -w "$2" < ProcessList > /dev/null ;then
+        echo "Add process $2 from memory leak test successfully."
+    fi
+fi
+
+if [ $1 == "-d" ];then
+    `sed -i "/\<$2\>/"d ProcessList`
+    if grep -w "$2" < ProcessList > /dev/null ;then
+        echo "Delete process $2 from memory leak test unsuccessfully."
+    fi
+
+fi
+
+

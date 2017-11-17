@@ -1,0 +1,90 @@
+##############################################################################
+#Copyright (c) 2017 Dsppa
+#Author : JHB	Version : V1.0	Date : 11/02/2017
+##############################################################################
+#!/bin/sh
+
+
+# cd /home/jhb/nfs/MemoryLeakTest
+
+line_prc=`cat ProcessList | grep "pn" -c` 
+echo line : $line_prc
+
+####global
+flag=1
+
+> RSSList
+> LeakMemory.log
+for j in $(seq 6)
+do
+    for i in $(seq $line_prc)  
+    do 
+        if [ $line_prc -eq 0 ];then
+            break;
+        else
+            name_prc=`cat ProcessList |grep -m $i "pn=" |awk -F = '{print $2}'| sed -n "$i p"`
+            ####-aux $2
+            pid_prc=`ps -axu | grep $name_prc | awk '{print $2}' | sed -n "1p"`
+            
+
+            eval RSS_prc=`cat /proc/$pid_prc/status | grep "VmRSS" | awk '{print $2}'`
+            
+            echo "${j}_${i $name_prc} (pid : $pid_prc) : $RSS_prc Kb" >> RSSList 2>> RSSList
+            
+        fi
+    done
+
+    if [ $j -eq 6 ];then
+    break;
+    fi
+    sleep 1800
+
+
+done
+
+#######################################################################
+#test memory leek
+for i in $(seq $line_prc)  
+do 
+    flag=0
+    index_1=$i
+    index_2=`expr $i + 1 \* $line_prc`
+    index_3=`expr $i + 2 \* $line_prc`
+    index_4=`expr $i + 3 \* $line_prc`
+    index_5=`expr $i + 4 \* $line_prc`
+    index_6=`expr $i + 5 \* $line_prc`
+
+    resultRSS_1=`cat RSSList | awk '{print $7}'| sed -n "$index_1 p"`
+    resultRSS_2=`cat RSSList | awk '{print $7}'| sed -n "$index_2 p"`
+    resultRSS_3=`cat RSSList | awk '{print $7}'| sed -n "$index_3 p"`
+    resultRSS_4=`cat RSSList | awk '{print $7}'| sed -n "$index_4 p"`
+    resultRSS_5=`cat RSSList | awk '{print $7}'| sed -n "$index_5 p"`
+    resultRSS_6=`cat RSSList | awk '{print $7}'| sed -n "$index_6 p"`
+
+    for j in 1 2 3 4 5
+    do
+        k=`expr $j + 1`
+        var_1="resultRSS_"$j
+        var_2="resultRSS_"$k
+        # echo $resultRSS_2
+        eval var1=\$$var_1
+        eval var2=\$$var_2
+        differ=`expr ${var2} - ${var1} + 1 `
+        differ_per=`expr $differ \* 100 / $resultRSS_1`
+        # echo $differ_per
+        if [ $differ_per -ge 10 ];then
+            flag=`expr $flag + 1`
+        fi
+        
+        # echo $flag
+
+
+    done
+
+    if [ $flag -ge 4 ];then
+        name_prc=`cat ProcessList |grep -m $i "pn=" |awk -F = '{print $2}'| sed -n "$i p"`
+
+        echo "WARNING : THE PROGRAM $name_prc LEAKLING MEMORY!!!" >> LeakMemory.log
+    fi
+
+done
